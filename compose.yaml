@@ -8,6 +8,8 @@ services:
       DJANGO_DB_PATH: /app/data/db.sqlite3
     volumes:
       - bookstore_data:/app/data
+    networks:
+      - bookstore_network
     healthcheck:
       test:
         - CMD
@@ -21,3 +23,8 @@ services:
 
 volumes:
   bookstore_data:
+
+networks:
+  bookstore_network:
+    name: bookstore-network
+    driver: bridge
