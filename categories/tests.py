@@ -1,3 +1,6 @@
+import hashlib
+import hmac
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 from rest_framework import status
@@ -64,3 +67,19 @@ class HealthCheckTests(TestCase):
 
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		self.assertEqual(response.json(), {'status': 'ok'})
+
+	def test_hello_world_page_is_available(self):
+		response = self.client.get('/hello/')
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.assertContains(response, 'Bookstore API is running')
+
+	def test_webhook_rejects_invalid_signature(self):
+		response = self.client.post(
+			'/update_server/',
+			data='{}',
+			content_type='application/json',
+			HTTP_X_HUB_SIGNATURE_256='sha256=invalid',
+		)
+
+		self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
