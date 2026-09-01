@@ -36,7 +36,10 @@ class CategoryViewSetTests(TestCase):
 
 		self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 		self.assertEqual(Category.objects.count(), 1)
-		self.assertEqual(self.client.get('/api/categories/').data[0]['name'], 'Books')
+		self.assertEqual(
+			self.client.get('/api/categories/').data['results'][0]['name'],
+			'Books',
+		)
 
 	def test_rejects_category_without_name(self):
 		response = self.client.post('/api/categories/', {}, format='json')

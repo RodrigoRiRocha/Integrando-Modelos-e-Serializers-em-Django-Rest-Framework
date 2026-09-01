@@ -98,3 +98,26 @@ class ProductViewSetTests(TestCase):
 			self.client.get('/api/products/999/').status_code,
 			status.HTTP_404_NOT_FOUND,
 		)
+
+	def test_lists_products_in_pages(self):
+		for index in range(4):
+			Product.objects.create(
+				name=f'Product {index}',
+				price='19.90',
+				category=self.category,
+			)
+
+		first_page = self.client.get('/api/products/')
+
+		self.assertEqual(first_page.status_code, status.HTTP_200_OK)
+		self.assertEqual(first_page.data['count'], 5)
+		self.assertEqual(len(first_page.data['results']), 2)
+		self.assertIsNotNone(first_page.data['next'])
+		self.assertIsNone(first_page.data['previous'])
+
+		second_page = self.client.get('/api/products/?page=2')
+
+		self.assertEqual(second_page.status_code, status.HTTP_200_OK)
+		self.assertEqual(len(second_page.data['results']), 2)
+		self.assertIn('page=3', second_page.data['next'])
+		self.assertEqual(second_page.data['previous'], 'http://testserver/api/products/')
