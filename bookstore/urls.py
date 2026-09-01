@@ -23,6 +23,8 @@ from categories.views import CategoryViewSet
 from orders.views import OrderViewSet
 from products.views import ProductViewSet
 
+from .views import hello_world, update_server
+
 router = DefaultRouter()
 router.register('categories', CategoryViewSet, basename='category')
 router.register('products', ProductViewSet, basename='product')
@@ -36,5 +38,7 @@ def health_check(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('health/', health_check, name='health-check'),
+    path('hello/', hello_world, name='hello-world'),
+    path('update_server/', update_server, name='update-server'),
     path('api/', include(router.urls)),
 ]
