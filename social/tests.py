@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -45,13 +46,23 @@ class SocialApiTests(TestCase):
 
 		response = self.client.patch(
 			'/api/social/profiles/me/',
-			{'first_name': 'Alice', 'avatar_url': 'https://example.com/alice.png'},
-			format='json',
+			{
+				'first_name': 'Alice',
+				'password': 'new-alice-pass-123',
+				'avatar': SimpleUploadedFile(
+					'avatar.gif',
+					b'GIF87a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;',
+					content_type='image/gif',
+				),
+			},
+			format='multipart',
 		)
 
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		self.assertEqual(response.data['first_name'], 'Alice')
-		self.assertEqual(response.data['avatar_url'], 'https://example.com/alice.png')
+		self.alice.refresh_from_db()
+		self.assertTrue(self.alice.check_password('new-alice-pass-123'))
+		self.assertTrue(self.alice.profile.avatar.name.startswith('avatars/avatar'))
 
 	def test_following_user_populates_personalized_feed(self):
 		post = Post.objects.create(author=self.bob, content='Hello from Bob')
@@ -67,6 +78,19 @@ class SocialApiTests(TestCase):
 		response = self.client.get('/api/social/posts/feed/')
 		self.assertEqual(response.data['count'], 1)
 		self.assertEqual(response.data['results'][0]['id'], post.id)
+
+		self.assertEqual(
+			self.client.get(
+				f'/api/social/profiles/{self.alice.profile.id}/following/'
+			).data[0]['username'],
+			'bob',
+		)
+		self.assertEqual(
+			self.client.get(
+				f'/api/social/profiles/{self.bob.profile.id}/followers/'
+			).data[0]['username'],
+			'alice',
+		)
 
 	def test_user_can_like_and_comment_on_a_post(self):
 		post = Post.objects.create(author=self.bob, content='A post to interact with')

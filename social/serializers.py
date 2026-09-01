@@ -32,6 +32,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'password',
+            'avatar',
             'avatar_url',
             'following_count',
             'followers_count',

@@ -54,9 +54,20 @@
         <form id="profile-form">
           <input name="first_name" placeholder="Nome">
           <input name="last_name" placeholder="Sobrenome">
+          <input name="password" type="password" placeholder="Nova senha">
+          <input name="avatar" type="file" accept="image/*">
           <input name="avatar_url" type="url" placeholder="URL da foto de perfil">
           <button>Atualizar perfil</button>
         </form>
+      </section>
+
+      <section id="people-section" hidden>
+        <h2>Pessoas</h2>
+        <button id="refresh-people">Encontrar perfis</button>
+        <button id="show-following">Seguindo</button>
+        <button id="show-followers">Seguidores</button>
+        <div id="connections"></div>
+        <div id="people"></div>
       </section>
 
       <section id="post-section" hidden>
@@ -82,6 +93,7 @@
       function showAuthenticatedSections() {
         document.querySelector('#auth-section').hidden = Boolean(token());
         document.querySelector('#profile-section').hidden = !token();
+        document.querySelector('#people-section').hidden = !token();
         document.querySelector('#post-section').hidden = !token();
         document.querySelector('#feed-section').hidden = !token();
         if (token()) loadProfile();
@@ -104,26 +116,51 @@
 
       async function loadProfile() {
         const profile = await request('profiles/me/', { headers: headers() });
+        window.myProfileId = profile.id;
         for (const [name, value] of Object.entries(profile)) {
           const field = document.querySelector(`#profile-form [name="${name}"]`);
           if (field) field.value = value || '';
         }
         loadFeed();
+        loadPeople();
+      }
+
+      function escapeHtml(value) {
+        const element = document.createElement('div');
+        element.textContent = value;
+        return element.innerHTML;
       }
 
       async function loadFeed() {
         const feed = await request('posts/feed/', { headers: headers() });
         const container = document.querySelector('#feed');
         container.innerHTML = feed.results.length
-          ? feed.results.map(post => `<article class="post"><strong>@${post.author}</strong><p>${post.content}</p><small>${post.likes_count} curtidas · ${post.comments.length} comentários</small></article>`).join('')
+          ? feed.results.map(post => `<article class="post"><strong>@${escapeHtml(post.author)}</strong><p>${escapeHtml(post.content)}</p><small>${post.likes_count} curtidas · ${post.comments.length} comentários</small><p><button data-like="${post.id}">Curtir</button></p><form data-comment="${post.id}"><input name="content" maxlength="280" placeholder="Escreva um comentário" required><button>Comentar</button></form></article>`).join('')
           : '<p class="muted">Ainda não há postagens de pessoas que você segue.</p>';
+      }
+
+      async function loadPeople() {
+        const response = await request('profiles/', { headers: headers() });
+        const people = response.results.filter(profile => profile.id !== window.myProfileId);
+        document.querySelector('#people').innerHTML = people.map(profile => `<article class="post"><strong>@${escapeHtml(profile.username)}</strong><p>${profile.followers_count} seguidores · ${profile.following_count} seguindo</p><button data-follow="${profile.id}">Seguir</button></article>`).join('') || '<p class="muted">Não há outros perfis.</p>';
+      }
+
+      async function loadConnections(kind) {
+        const profiles = await request(`profiles/${window.myProfileId}/${kind}/`, { headers: headers() });
+        document.querySelector('#connections').innerHTML = `<p><strong>${kind === 'followers' ? 'Seguidores' : 'Seguindo'}:</strong> ${profiles.length ? profiles.map(profile => `@${escapeHtml(profile.username)}`).join(', ') : 'nenhum'}</p>`;
       }
 
       document.querySelector('#register-form').addEventListener('submit', async event => { event.preventDefault(); try { await authenticate(event.target, 'auth/register/'); } catch (error) { status.textContent = error.message; } });
       document.querySelector('#login-form').addEventListener('submit', async event => { event.preventDefault(); try { await authenticate(event.target, 'auth/login/'); } catch (error) { status.textContent = error.message; } });
-      document.querySelector('#profile-form').addEventListener('submit', async event => { event.preventDefault(); try { await request('profiles/me/', { method: 'PATCH', headers: headers(), body: JSON.stringify(Object.fromEntries(new FormData(event.target))) }); status.textContent = 'Perfil atualizado.'; } catch (error) { status.textContent = error.message; } });
+      document.querySelector('#profile-form').addEventListener('submit', async event => { event.preventDefault(); try { const formData = new FormData(event.target); if (!formData.get('avatar').size) formData.delete('avatar'); const response = await fetch(api + 'profiles/me/', { method: 'PATCH', headers: { Authorization: `Token ${token()}` }, body: formData }); if (!response.ok) throw new Error(await response.text()); status.textContent = 'Perfil atualizado.'; } catch (error) { status.textContent = error.message; } });
       document.querySelector('#post-form').addEventListener('submit', async event => { event.preventDefault(); try { await request('posts/', { method: 'POST', headers: headers(), body: JSON.stringify(Object.fromEntries(new FormData(event.target))) }); event.target.reset(); status.textContent = 'Postagem publicada.'; loadFeed(); } catch (error) { status.textContent = error.message; } });
       document.querySelector('#refresh-feed').addEventListener('click', () => loadFeed().catch(error => status.textContent = error.message));
+      document.querySelector('#refresh-people').addEventListener('click', () => loadPeople().catch(error => status.textContent = error.message));
+      document.querySelector('#show-following').addEventListener('click', () => loadConnections('following').catch(error => status.textContent = error.message));
+      document.querySelector('#show-followers').addEventListener('click', () => loadConnections('followers').catch(error => status.textContent = error.message));
+      document.querySelector('#people').addEventListener('click', async event => { if (!event.target.dataset.follow) return; try { await request(`profiles/${event.target.dataset.follow}/follow/`, { method: 'POST', headers: headers() }); status.textContent = 'Perfil seguido.'; loadPeople(); loadFeed(); } catch (error) { status.textContent = error.message; } });
+      document.querySelector('#feed').addEventListener('click', async event => { if (!event.target.dataset.like) return; try { await request(`posts/${event.target.dataset.like}/like/`, { method: 'POST', headers: headers() }); loadFeed(); } catch (error) { status.textContent = error.message; } });
+      document.querySelector('#feed').addEventListener('submit', async event => { if (!event.target.dataset.comment) return; event.preventDefault(); try { await request(`posts/${event.target.dataset.comment}/comments/`, { method: 'POST', headers: headers(), body: JSON.stringify(Object.fromEntries(new FormData(event.target))) }); event.target.reset(); loadFeed(); } catch (error) { status.textContent = error.message; } });
       showAuthenticatedSections();
     </script>
   </body>

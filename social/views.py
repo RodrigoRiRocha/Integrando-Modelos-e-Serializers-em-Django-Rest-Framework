@@ -75,6 +75,16 @@ class ProfileViewSet(ReadOnlyModelViewSet):
 		request.user.profile.following.remove(self.get_object())
 		return Response({'status': 'unfollowed'})
 
+	@action(detail=True, methods=('get',), permission_classes=(IsAuthenticated,))
+	def following(self, request, pk=None):
+		profile = self.get_object()
+		return Response(self.get_serializer(profile.following.all(), many=True).data)
+
+	@action(detail=True, methods=('get',), permission_classes=(IsAuthenticated,))
+	def followers(self, request, pk=None):
+		profile = self.get_object()
+		return Response(self.get_serializer(profile.followers.all(), many=True).data)
+
 
 class PostViewSet(ModelViewSet):
 	queryset = Post.objects.select_related('author').prefetch_related('likes', 'comments__author')
