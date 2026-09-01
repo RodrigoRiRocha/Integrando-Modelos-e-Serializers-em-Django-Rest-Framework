@@ -41,4 +41,5 @@ urlpatterns = [
     path('hello/', hello_world, name='hello-world'),
     path('update_server/', update_server, name='update-server'),
     path('api/', include(router.urls)),
+    path('api/social/', include('social.urls')),
 ]

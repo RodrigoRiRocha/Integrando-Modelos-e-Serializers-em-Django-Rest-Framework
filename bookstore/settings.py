@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'categories',
     'products',
     'orders',
+    'social.apps.SocialConfig',
 ]
 
 REST_FRAMEWORK = {
