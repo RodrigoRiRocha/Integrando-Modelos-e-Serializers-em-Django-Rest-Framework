@@ -34,6 +34,12 @@ class SocialApiTests(TestCase):
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		self.assertIn('token', response.data)
 
+	def test_social_home_page_is_available(self):
+		response = self.client.get('/api/social/')
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.assertContains(response, 'Social API')
+
 	def test_profile_can_be_updated_without_changing_all_fields(self):
 		self.authenticate_as(self.alice)
 

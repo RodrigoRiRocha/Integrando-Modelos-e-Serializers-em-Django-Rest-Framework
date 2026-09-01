@@ -19,6 +19,8 @@ py manage.py migrate
 py manage.py runserver
 ```
 
+Abra `http://127.0.0.1:8000/api/social/` para usar a interface web do clone social.
+
 Para executar com Docker Compose:
 
 ```powershell

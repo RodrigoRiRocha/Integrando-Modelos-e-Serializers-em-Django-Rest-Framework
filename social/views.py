@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate
+from django.shortcuts import render
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
@@ -10,6 +11,10 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from .models import Post, Profile
 from .permissions import IsAuthorOrReadOnly
 from .serializers import CommentSerializer, PostSerializer, ProfileSerializer, RegisterSerializer
+
+
+def social_home(request):
+	return render(request, 'social/home.html')
 
 
 class RegisterView(APIView):
