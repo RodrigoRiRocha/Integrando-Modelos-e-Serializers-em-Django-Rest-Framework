@@ -39,7 +39,7 @@ class SocialApiTests(TestCase):
 		response = self.client.get('/api/social/')
 
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
-		self.assertContains(response, 'Social API')
+		self.assertContains(response, 'chirp.')
 
 	def test_profile_can_be_updated_without_changing_all_fields(self):
 		self.authenticate_as(self.alice)
