@@ -27,6 +27,21 @@ Para executar com Docker Compose:
 docker compose up --build
 ```
 
+## Deploy na Vercel
+
+O projeto inclui `vercel.json` e o entrypoint `api/index.py`. Configure as variáveis
+abaixo na Vercel antes do deploy de produção:
+
+```text
+DJANGO_SECRET_KEY=<chave-secreta>
+DJANGO_DEBUG=false
+DJANGO_ALLOWED_HOSTS=.vercel.app
+DATABASE_URL=<url-postgresql>
+```
+
+Use PostgreSQL em produção. O SQLite é mantido apenas para desenvolvimento local e não
+persiste com segurança em funções serverless.
+
 ## Autenticação
 
 Crie uma conta em `POST /api/social/auth/register/` ou faça login em
