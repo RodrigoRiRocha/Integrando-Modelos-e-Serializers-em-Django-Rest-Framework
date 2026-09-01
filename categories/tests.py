@@ -56,3 +56,11 @@ class CategoryViewSetTests(TestCase):
 		response = APIClient().get('/api/categories/')
 
 		self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class HealthCheckTests(TestCase):
+	def test_health_check_returns_ok(self):
+		response = self.client.get('/health/')
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.assertEqual(response.json(), {'status': 'ok'})
