@@ -1,4 +1,6 @@
 from django.contrib.auth import authenticate
+from django.contrib.staticfiles import finders
+from django.http import FileResponse, Http404
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -27,6 +29,17 @@ def profile_page(request, username):
 
 def settings_page(request):
 	return render(request, 'social/settings.html')
+
+
+def asset(request, filename):
+	if filename not in {'app.css', 'app.js'}:
+		raise Http404
+    
+	path = finders.find(f'social/{filename}')
+	if not path:
+		raise Http404
+	content_type = 'text/css' if filename.endswith('.css') else 'application/javascript'
+	return FileResponse(open(path, 'rb'), content_type=content_type)
 
 
 class RegisterView(APIView):

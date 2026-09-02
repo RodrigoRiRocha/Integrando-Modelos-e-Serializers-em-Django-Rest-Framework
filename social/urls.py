@@ -6,6 +6,7 @@ from .views import (
     PostViewSet,
     ProfileViewSet,
     RegisterView,
+    asset,
     explore,
     profile_page,
     settings_page,
@@ -17,6 +18,7 @@ router.register('profiles', ProfileViewSet, basename='profile')
 router.register('posts', PostViewSet, basename='post')
 
 urlpatterns = [
+    path('assets/<str:filename>', asset, name='social-asset'),
     path('', social_home, name='social-home'),
     path('explore/', explore, name='explore'),
     path('settings/', settings_page, name='settings'),

@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Chirp{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'social/app.css' %}">
+    <link rel="stylesheet" href="/api/social/assets/app.css">
   </head>
   <body data-page="{% block page %}home{% endblock %}">
     <div class="app-shell">
@@ -64,6 +64,6 @@
         <p class="form-message" id="auth-message" aria-live="polite"></p>
       </div>
     </section>
-    <script src="{% static 'social/app.js' %}"></script>
+    <script src="/api/social/assets/app.js"></script>
   </body>
 </html>
