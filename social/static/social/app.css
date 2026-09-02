@@ -42,10 +42,19 @@ h2 { font-size: 18px; letter-spacing: 0; }
 .post-meta { font-size: 15px; }
 .post-meta a { color: var(--ink); font-weight: 700; text-decoration: none; }
 .post-meta span { color: var(--muted); margin-left: 4px; }
+.post-meta span:first-of-type { margin-left: 4px; }
+.post-meta span:not(:first-of-type) { margin-left: 4px; font-size: 13px; }
 .post-content { line-height: 1.45; margin: 4px 0 9px; white-space: pre-wrap; }
 .post-actions { display: flex; gap: 14px; }
 .post-actions button { background: transparent; color: var(--muted); min-height: 28px; padding: 3px 6px; }
 .post-actions button:hover { background: #e8f5fd; color: var(--blue); }
+.post-comments { border-left: 2px solid var(--line); margin: 12px 0 8px 0; padding-left: 12px; }
+.comment { align-items: flex-start; display: flex; gap: 8px; margin-bottom: 8px; }
+.comment-avatar { height: 32px; width: 32px; font-size: 14px; flex-shrink: 0; }
+.comment-meta { font-size: 13px; margin-bottom: 2px; }
+.comment-meta a { color: var(--ink); font-weight: 700; text-decoration: none; }
+.comment-meta span { color: var(--muted); margin-left: 4px; }
+.comment-content { font-size: 13px; line-height: 1.4; margin: 2px 0 0 0; }
 .comment-form { display: flex; gap: 8px; grid-column: 2; margin-top: 8px; }
 .comment-form input { padding: 7px 10px; }
 .comment-form button { min-height: 34px; }
@@ -78,6 +87,11 @@ h2 { font-size: 18px; letter-spacing: 0; }
 .profile-stats { display: flex; gap: 18px; margin-top: 16px; }
 .profile-stats button { background: transparent; color: var(--muted); padding: 0; }
 .profile-stats strong { color: var(--ink); }
+.profile-tabs { border-bottom: 1px solid var(--line); display: flex; gap: 20px; padding: 0 18px; position: sticky; top: 57px; background: rgba(255, 255, 255, .94); backdrop-filter: blur(12px); z-index: 1; }
+.profile-tabs .tab { background: transparent; border: 0; border-bottom: 3px solid transparent; border-radius: 0; color: var(--muted); cursor: pointer; font-weight: 700; min-height: auto; padding: 15px 0; text-transform: none; }
+.profile-tabs .tab:hover { color: var(--ink); background: transparent; }
+.profile-tabs .tab.is-active { border-bottom-color: var(--blue); color: var(--ink); }
+.tab-content { min-height: 160px; }
 .profile-list .profile-row { align-items: center; border-bottom: 1px solid var(--line); display: flex; gap: 12px; padding: 14px 18px; }
 .profile-row .profile-copy { flex: 1; min-width: 0; }
 .profile-row a { color: var(--ink); font-weight: 700; text-decoration: none; }

@@ -3,6 +3,20 @@ const token = () => localStorage.getItem('chirp-token');
 const authHeaders = () => token() ? { 'Content-Type': 'application/json', Authorization: `Token ${token()}` } : {};
 const escapeHtml = value => String(value).replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
 
+function formatTime(isoString) {
+  const date = new Date(isoString);
+  const now = new Date();
+  const seconds = Math.floor((now - date) / 1000);
+  if (seconds < 60) return 'agora';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d`;
+  return date.toLocaleDateString('pt-BR');
+}
+
 async function request(path, options = {}) {
   const response = await fetch(api + path, options);
   const data = await response.json().catch(() => ({}));
@@ -17,9 +31,16 @@ function setMessage(message) {
 
 function showAuth(open) { document.querySelector('#auth-layer').hidden = !open; }
 
+function renderComments(comments) {
+  if (!comments.length) return '';
+  return `<div class="post-comments">${comments.map(comment => `<div class="comment"><div class="avatar comment-avatar">${escapeHtml(comment.author.charAt(0).toUpperCase())}</div><div><div class="comment-meta"><a href="/api/social/profile/${encodeURIComponent(comment.author)}/">${escapeHtml(comment.author)}</a><span>${formatTime(comment.created_at)}</span></div><p class="comment-content">${escapeHtml(comment.content)}</p></div></div>`).join('')}</div>`;
+}
+
 function postCard(post) {
+  const timestamp = `<span title="${new Date(post.created_at).toLocaleString('pt-BR')}">${formatTime(post.created_at)}</span>`;
   const actions = token() ? `<div class="post-actions"><button data-like="${post.id}">Curtir ${post.likes_count}</button><button data-toggle-comment="${post.id}">Comentar ${post.comments.length}</button></div>` : '';
-  return `<article class="post"><div class="avatar post-avatar">${escapeHtml(post.author.charAt(0).toUpperCase())}</div><div><div class="post-meta"><a href="/api/social/profile/${encodeURIComponent(post.author)}/">${escapeHtml(post.author)}</a><span>@${escapeHtml(post.author)}</span></div><p class="post-content">${escapeHtml(post.content)}</p>${actions}</div><form class="comment-form" data-comment="${post.id}" hidden><input name="content" maxlength="280" placeholder="Escreva uma resposta" required><button>Responder</button></form></article>`;
+  const comments = renderComments(post.comments);
+  return `<article class="post"><div class="avatar post-avatar">${escapeHtml(post.author.charAt(0).toUpperCase())}</div><div><div class="post-meta"><a href="/api/social/profile/${encodeURIComponent(post.author)}/">${escapeHtml(post.author)}</a><span>@${escapeHtml(post.author)}</span>${timestamp}</div><p class="post-content">${escapeHtml(post.content)}</p>${comments}${actions}</div><form class="comment-form" data-comment="${post.id}" hidden><input name="content" maxlength="280" placeholder="Escreva uma resposta" required><button>Responder</button></form></article>`;
 }
 
 async function loadTimeline() {
@@ -62,10 +83,44 @@ async function loadProfilePage() {
   document.querySelector('#profile-handle').textContent = `@${profile.username}`;
   document.querySelector('#profile-avatar').textContent = profile.username.charAt(0).toUpperCase();
   document.querySelector('#profile-stats').innerHTML = `<button data-connections="following"><strong>${profile.following_count}</strong> seguindo</button><button data-connections="followers"><strong>${profile.followers_count}</strong> seguidores</button>`;
-  if (token()) document.querySelector('#profile-actions').innerHTML = `<button data-follow="${profile.id}">Seguir</button>`;
+  if (token()) {
+    const followBtn = `<button data-follow="${profile.id}">Seguir</button>`;
+    document.querySelector('#profile-actions').innerHTML = followBtn;
+  }
+  
+  // Load posts
   const posts = await request('posts/', { headers: authHeaders() });
   const mine = posts.results.filter(post => post.author === username);
   document.querySelector('#profile-posts').innerHTML = mine.length ? mine.map(postCard).join('') : '<p class="empty">Nenhuma postagem ainda.</p>';
+  
+  // Load followers and following from API
+  let followers_list = [];
+  let following_list = [];
+  if (token()) {
+    try {
+      followers_list = await request(`profiles/${profile.id}/followers/`, { headers: authHeaders() });
+      following_list = await request(`profiles/${profile.id}/following/`, { headers: authHeaders() });
+    } catch (e) {}
+  }
+  
+  // Render followers list
+  const followersHTML = followers_list.length ? followers_list.map(p => profileRow(p)).join('') : '<p class="empty">Nenhum seguidor ainda.</p>';
+  document.querySelector('#profile-followers').innerHTML = followersHTML;
+  
+  // Render following list
+  const followingHTML = following_list.length ? following_list.map(p => profileRow(p)).join('') : '<p class="empty">Não está seguindo ninguém.</p>';
+  document.querySelector('#profile-following').innerHTML = followingHTML;
+  
+  // Tab switching
+  document.querySelectorAll('.profile-tabs .tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.profile-tabs .tab').forEach(t => t.classList.remove('is-active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.hidden = true);
+      tab.classList.add('is-active');
+      const tabName = tab.dataset.tab;
+      document.querySelector(`#profile-${tabName}`).hidden = false;
+    });
+  });
 }
 
 async function loadSettings() {
@@ -88,7 +143,13 @@ document.addEventListener('click', async event => {
   if (action.matches('[data-open-auth]')) showAuth(true);
   if (action.matches('[data-close-auth]')) showAuth(false);
   if (action.dataset.authTab) { document.querySelectorAll('.auth-tabs .tab').forEach(tab => tab.classList.toggle('is-active', tab === action)); document.querySelector('#login-form').hidden = action.dataset.authTab !== 'login'; document.querySelector('#register-form').hidden = action.dataset.authTab !== 'register'; }
-  if (action.dataset.follow) { try { await request(`profiles/${action.dataset.follow}/follow/`, { method: 'POST', headers: authHeaders() }); action.textContent = 'Seguindo'; } catch (error) { setMessage(error.message); } }
+  if (action.dataset.follow) { 
+    try { 
+      const url = `profiles/${action.dataset.follow}/follow/`;
+      await request(url, { method: 'POST', headers: authHeaders() });
+      action.textContent = action.textContent === 'Seguir' ? 'Deixar de seguir' : 'Seguir';
+    } catch (error) { setMessage(error.message); } 
+  }
   if (action.dataset.like) { try { await request(`posts/${action.dataset.like}/like/`, { method: 'POST', headers: authHeaders() }); loadTimeline(); } catch (error) { setMessage(error.message); } }
   if (action.dataset.toggleComment) { const form = document.querySelector(`form[data-comment="${action.dataset.toggleComment}"]`); form.hidden = !form.hidden; }
 });
@@ -105,6 +166,7 @@ document.addEventListener('submit', async event => {
 
 document.querySelector('#refresh-feed')?.addEventListener('click', loadTimeline);
 document.querySelector('#post-form textarea')?.addEventListener('input', event => { document.querySelector('#character-count').textContent = `${event.target.value.length} / 280`; });
+document.querySelector('#logout-button')?.addEventListener('click', () => { localStorage.removeItem('chirp-token'); location.href = '/api/social/'; });
 updateAuthenticatedState();
 if (document.body.dataset.page === 'home') loadTimeline();
 if (document.body.dataset.page === 'explore') loadExplore().catch(error => setMessage(error.message));

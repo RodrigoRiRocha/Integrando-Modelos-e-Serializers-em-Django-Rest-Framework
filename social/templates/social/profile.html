@@ -12,6 +12,12 @@
     <div class="profile-stats" id="profile-stats"></div>
   </div>
 </section>
-<section class="section-heading"><h2>Postagens</h2></section>
-<div id="profile-posts"><p class="empty">Carregando postagens...</p></div>
+<section class="profile-tabs">
+  <button class="tab is-active" data-tab="posts">Postagens</button>
+  <button class="tab" data-tab="following">Seguindo</button>
+  <button class="tab" data-tab="followers">Seguidores</button>
+</section>
+<div id="profile-posts" class="tab-content"><p class="empty">Carregando postagens...</p></div>
+<div id="profile-following" class="tab-content" hidden><p class="empty">Carregando...</p></div>
+<div id="profile-followers" class="tab-content" hidden><p class="empty">Carregando...</p></div>
 {% endblock %}
