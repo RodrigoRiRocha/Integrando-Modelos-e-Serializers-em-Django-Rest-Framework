@@ -1,0 +1,17 @@
+{% extends 'social/base.html' %}
+{% block title %}@{{ username }} | Chirp{% endblock %}
+{% block page %}profile{% endblock %}
+{% block content %}
+<section class="profile-hero" data-username="{{ username }}">
+  <div class="profile-cover"></div>
+  <div class="profile-info">
+    <div class="avatar avatar-large" id="profile-avatar">@</div>
+    <div class="profile-actions" id="profile-actions"></div>
+    <h1 id="profile-name">Carregando...</h1>
+    <p id="profile-handle" class="muted"></p>
+    <div class="profile-stats" id="profile-stats"></div>
+  </div>
+</section>
+<section class="section-heading"><h2>Postagens</h2></section>
+<div id="profile-posts"><p class="empty">Carregando postagens...</p></div>
+{% endblock %}

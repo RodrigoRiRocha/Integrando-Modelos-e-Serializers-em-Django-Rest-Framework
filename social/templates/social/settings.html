@@ -1,0 +1,16 @@
+{% extends 'social/base.html' %}
+{% block title %}Seu perfil | Chirp{% endblock %}
+{% block page %}settings{% endblock %}
+{% block content %}
+<header class="page-header"><h1>Seu perfil</h1><p>Escolha o que deseja atualizar.</p></header>
+<section class="settings-form" id="settings-locked"><p>Entre para editar seu perfil.</p><button data-open-auth>Entrar</button></section>
+<form class="settings-form" id="profile-form" hidden>
+  <label>Nome<input name="first_name" autocomplete="given-name"></label>
+  <label>Sobrenome<input name="last_name" autocomplete="family-name"></label>
+  <label>Nova senha<input name="password" type="password" autocomplete="new-password" minlength="8"></label>
+  <label>Foto de perfil<input name="avatar" type="file" accept="image/*"></label>
+  <label>Ou URL da foto<input name="avatar_url" type="url" placeholder="https://..."></label>
+  <button>Salvar alterações</button>
+  <p class="form-message" id="profile-message" aria-live="polite"></p>
+</form>
+{% endblock %}

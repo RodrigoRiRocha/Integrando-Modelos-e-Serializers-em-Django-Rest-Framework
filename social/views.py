@@ -3,7 +3,7 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
@@ -15,6 +15,18 @@ from .serializers import CommentSerializer, PostSerializer, ProfileSerializer, R
 
 def social_home(request):
 	return render(request, 'social/home.html')
+
+
+def explore(request):
+	return render(request, 'social/explore.html')
+
+
+def profile_page(request, username):
+	return render(request, 'social/profile.html', {'username': username})
+
+
+def settings_page(request):
+	return render(request, 'social/settings.html')
 
 
 class RegisterView(APIView):
@@ -48,6 +60,12 @@ class LoginView(APIView):
 class ProfileViewSet(ReadOnlyModelViewSet):
 	queryset = Profile.objects.select_related('user')
 	serializer_class = ProfileSerializer
+	permission_classes = (AllowAny,)
+
+	@action(detail=False, methods=('get',), url_path='by-username/(?P<username>[^/.]+)')
+	def by_username(self, request, username=None):
+		profile = self.get_queryset().get(user__username=username)
+		return Response(self.get_serializer(profile).data)
 
 	@action(detail=False, methods=('get', 'patch'), permission_classes=(IsAuthenticated,))
 	def me(self, request):
@@ -89,12 +107,12 @@ class ProfileViewSet(ReadOnlyModelViewSet):
 class PostViewSet(ModelViewSet):
 	queryset = Post.objects.select_related('author').prefetch_related('likes', 'comments__author')
 	serializer_class = PostSerializer
-	permission_classes = (IsAuthenticated, IsAuthorOrReadOnly)
+	permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
 
 	def perform_create(self, serializer):
 		serializer.save(author=self.request.user)
 
-	@action(detail=False, methods=('get',))
+	@action(detail=False, methods=('get',), permission_classes=(IsAuthenticated,))
 	def feed(self, request):
 		following = request.user.profile.following.all()
 		queryset = self.get_queryset().filter(author__profile__in=following)
