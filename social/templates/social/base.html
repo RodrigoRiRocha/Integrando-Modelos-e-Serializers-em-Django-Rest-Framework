@@ -1,0 +1,69 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Chirp{% endblock %}</title>
+    <link rel="stylesheet" href="/api/social/assets/app.css">
+  </head>
+  <body data-page="{% block page %}home{% endblock %}">
+    <div class="app-shell">
+      <aside class="navigation" aria-label="Navegação principal">
+        <a class="wordmark" href="/api/social/">chirp.</a>
+        <nav>
+          <a href="/api/social/">Início</a>
+          <a href="/api/social/explore/">Explorar</a>
+          <a href="/api/social/settings/">Perfil</a>
+        </nav>
+        <button class="primary-action" data-open-auth>Entrar</button>
+      </aside>
+
+      <main class="content">{% block content %}{% endblock %}</main>
+
+      <aside class="right-rail">
+        <div class="rail-card" id="account-card">
+          <h2>Bem-vindo ao Chirp</h2>
+          <p>Entre para publicar, seguir pessoas e montar sua timeline.</p>
+          <button data-open-auth>Entrar ou criar conta</button>
+        </div>
+        <div class="rail-card">
+          <h2>Em alta</h2>
+          <a href="/api/social/explore/?q=django">Django REST Framework</a>
+          <a href="/api/social/explore/?q=python">Python</a>
+          <a href="/api/social/explore/?q=tecnologia">Tecnologia</a>
+        </div>
+      </aside>
+    </div>
+
+    <nav class="mobile-nav" aria-label="Navegação móvel">
+      <a href="/api/social/">Início</a>
+      <a href="/api/social/explore/">Explorar</a>
+      <a href="/api/social/settings/">Perfil</a>
+    </nav>
+
+    <section class="auth-layer" id="auth-layer" hidden aria-label="Autenticação">
+      <div class="auth-backdrop" data-close-auth></div>
+      <div class="auth-panel" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+        <button class="icon-button" data-close-auth aria-label="Fechar">Fechar</button>
+        <h1 id="auth-title">Entre no Chirp</h1>
+        <div class="auth-tabs">
+          <button class="tab is-active" data-auth-tab="login">Entrar</button>
+          <button class="tab" data-auth-tab="register">Criar conta</button>
+        </div>
+        <form id="login-form">
+          <label>Usuário<input name="username" autocomplete="username" required></label>
+          <label>Senha<input name="password" type="password" autocomplete="current-password" required></label>
+          <button>Entrar</button>
+        </form>
+        <form id="register-form" hidden>
+          <label>Usuário<input name="username" autocomplete="username" required></label>
+          <label>Senha<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+          <button>Criar conta</button>
+        </form>
+        <p class="form-message" id="auth-message" aria-live="polite"></p>
+      </div>
+    </section>
+    <script src="/api/social/assets/app.js"></script>
+  </body>
+</html>

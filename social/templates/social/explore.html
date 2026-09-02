@@ -1,0 +1,9 @@
+{% extends 'social/base.html' %}
+{% block title %}Explorar | Chirp{% endblock %}
+{% block page %}explore{% endblock %}
+{% block content %}
+<header class="page-header"><h1>Explorar</h1><p>Encontre pessoas e acompanhe a conversa.</p></header>
+<section class="search-panel"><label>Buscar pessoas<input id="profile-search" placeholder="Pesquisar por @usuário" autocomplete="off"></label></section>
+<section class="section-heading"><h2>Pessoas para seguir</h2></section>
+<div id="profile-results" class="profile-list"><p class="empty">Carregando perfis...</p></div>
+{% endblock %}

@@ -5,7 +5,6 @@ import os
 from django.http import HttpResponseBadRequest, HttpResponseForbidden, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-from git import Repo
 
 
 def hello_world(request):
@@ -34,6 +33,8 @@ def update_server(request):
     repo_path = os.getenv('DEPLOY_REPOSITORY_PATH')
     if not repo_path:
         return HttpResponseBadRequest('DEPLOY_REPOSITORY_PATH is not configured.')
+
+    from git import Repo
 
     repo = Repo(repo_path)
     repo.remotes.origin.pull()
