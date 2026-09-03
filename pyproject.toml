@@ -1,0 +1,18 @@
+[project]
+name = "bookstore"
+version = "0.1.0"
+description = "API da livraria com modelos e serializers em Django REST Framework"
+authors = [{ name = "Rodrigo Ribeiro da Rocha" }]
+readme = "README.md"
+requires-python = ">=3.13,<4.0"
+dependencies = [
+    "django (>=6.1,<7.0)",
+    "djangorestframework (>=3.18.0,<4.0.0)",
+]
+
+[tool.poetry]
+package-mode = false
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
