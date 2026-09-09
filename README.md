@@ -31,6 +31,16 @@ A API fica disponível em `http://127.0.0.1:8000/`.
 
 ## Testes
 
+O `poetry install` inclui as dependências de desenvolvimento `pytest` e
+`pytest-django`. A configuração no `pyproject.toml` carrega as configurações do
+Django e descobre os arquivos `tests.py` das aplicações.
+
+```powershell
+poetry run pytest -q
+```
+
+Também é possível executar a mesma suíte pelo runner do Django:
+
 ```powershell
 poetry run python manage.py test
 ```
