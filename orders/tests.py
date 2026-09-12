@@ -69,3 +69,26 @@ class OrderViewSetTests(TestCase):
 
 		self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 		self.assertIn('products', response.data)
+
+	def test_retrieves_lists_and_updates_order(self):
+		order = self.client.post(
+			'/api/orders/',
+			{'customer_name': 'Ada Lovelace', 'products': [self.product.id]},
+			format='json',
+		).data
+
+		response = self.client.get(f"/api/orders/{order['id']}/")
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.assertEqual(response.data['products'], [self.product.id])
+
+		response = self.client.patch(
+			f"/api/orders/{order['id']}/",
+			{'customer_name': 'Grace Hopper'},
+			format='json',
+		)
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.assertEqual(response.data['customer_name'], 'Grace Hopper')
+
+		response = self.client.get('/api/orders/')
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.assertEqual(response.data[0]['id'], order['id'])
