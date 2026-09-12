@@ -81,6 +81,20 @@ class ProductViewSetTests(TestCase):
 		self.product.refresh_from_db()
 		self.assertEqual(str(self.product.price), '69.90')
 
+		response = self.client.patch(
+			f'/api/products/{self.product.id}/',
+			{
+				'category': {
+					'name': 'Advanced Django',
+					'description': 'Advanced books',
+				}
+			},
+			format='json',
+		)
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.product.refresh_from_db()
+		self.assertEqual(self.product.category.name, 'Advanced Django')
+
 	def test_creates_product_and_returns_404_for_missing_product(self):
 		response = self.client.post(
 			'/api/products/',
@@ -98,3 +112,9 @@ class ProductViewSetTests(TestCase):
 			self.client.get('/api/products/999/').status_code,
 			status.HTTP_404_NOT_FOUND,
 		)
+
+	def test_deletes_product(self):
+		response = self.client.delete(f'/api/products/{self.product.id}/')
+
+		self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+		self.assertFalse(Product.objects.filter(id=self.product.id).exists())
