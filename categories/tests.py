@@ -38,6 +38,22 @@ class CategoryViewSetTests(TestCase):
 		self.assertEqual(Category.objects.count(), 1)
 		self.assertEqual(self.client.get('/api/categories/').data[0]['name'], 'Books')
 
+	def test_updates_and_deletes_category(self):
+		category = Category.objects.create(name='Books', description='Printed books')
+
+		response = self.client.patch(
+			f'/api/categories/{category.id}/',
+			{'description': 'Updated description'},
+			format='json',
+		)
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		category.refresh_from_db()
+		self.assertEqual(category.description, 'Updated description')
+
+		response = self.client.delete(f'/api/categories/{category.id}/')
+		self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+		self.assertFalse(Category.objects.filter(id=category.id).exists())
+
 	def test_rejects_category_without_name(self):
 		response = self.client.post('/api/categories/', {}, format='json')
 
