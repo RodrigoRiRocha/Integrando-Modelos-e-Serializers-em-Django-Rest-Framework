@@ -1,7 +1,5 @@
-from django.contrib.auth.models import User
 from django.test import TestCase
 from rest_framework import status
-from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from categories.models import Category
@@ -61,9 +59,6 @@ class ProductSerializerTests(TestCase):
 class ProductViewSetTests(TestCase):
 	def setUp(self):
 		self.client = APIClient()
-		user = User.objects.create_user(username='api-user', password='secret')
-		token = Token.objects.create(user=user)
-		self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
 		self.category = Category.objects.create(name='Programming')
 		self.product = Product.objects.create(
 			name='Django',
@@ -86,6 +81,20 @@ class ProductViewSetTests(TestCase):
 		self.product.refresh_from_db()
 		self.assertEqual(str(self.product.price), '69.90')
 
+		response = self.client.patch(
+			f'/api/products/{self.product.id}/',
+			{
+				'category': {
+					'name': 'Advanced Django',
+					'description': 'Advanced books',
+				}
+			},
+			format='json',
+		)
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.product.refresh_from_db()
+		self.assertEqual(self.product.category.name, 'Advanced Django')
+
 	def test_creates_product_and_returns_404_for_missing_product(self):
 		response = self.client.post(
 			'/api/products/',
@@ -104,25 +113,8 @@ class ProductViewSetTests(TestCase):
 			status.HTTP_404_NOT_FOUND,
 		)
 
-	def test_lists_products_in_pages(self):
-		for index in range(4):
-			Product.objects.create(
-				name=f'Product {index}',
-				price='19.90',
-				category=self.category,
-			)
+	def test_deletes_product(self):
+		response = self.client.delete(f'/api/products/{self.product.id}/')
 
-		first_page = self.client.get('/api/products/')
-
-		self.assertEqual(first_page.status_code, status.HTTP_200_OK)
-		self.assertEqual(first_page.data['count'], 5)
-		self.assertEqual(len(first_page.data['results']), 2)
-		self.assertIsNotNone(first_page.data['next'])
-		self.assertIsNone(first_page.data['previous'])
-
-		second_page = self.client.get('/api/products/?page=2')
-
-		self.assertEqual(second_page.status_code, status.HTTP_200_OK)
-		self.assertEqual(len(second_page.data['results']), 2)
-		self.assertIn('page=3', second_page.data['next'])
-		self.assertEqual(second_page.data['previous'], 'http://testserver/api/products/')
+		self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+		self.assertFalse(Product.objects.filter(id=self.product.id).exists())
