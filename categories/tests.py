@@ -36,7 +36,25 @@ class CategoryViewSetTests(TestCase):
 
 		self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 		self.assertEqual(Category.objects.count(), 1)
-		self.assertEqual(self.client.get('/api/categories/').data[0]['name'], 'Books')
+		list_response = self.client.get('/api/categories/')
+		self.assertEqual(list_response.data['results'][0]['name'], 'Books')
+
+	def test_paginates_categories(self):
+		Category.objects.bulk_create(
+			[
+				Category(name='Books'),
+				Category(name='Comics'),
+				Category(name='Magazines'),
+			]
+		)
+
+		response = self.client.get('/api/categories/')
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.assertEqual(response.data['count'], 3)
+		self.assertEqual(len(response.data['results']), 2)
+		self.assertIsNotNone(response.data['next'])
+		self.assertIsNone(response.data['previous'])
 
 	def test_updates_and_deletes_category(self):
 		category = Category.objects.create(name='Books', description='Printed books')

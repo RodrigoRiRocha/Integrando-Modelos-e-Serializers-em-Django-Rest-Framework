@@ -91,4 +91,4 @@ class OrderViewSetTests(TestCase):
 
 		response = self.client.get('/api/orders/')
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
-		self.assertEqual(response.data[0]['id'], order['id'])
+		self.assertEqual(response.data['results'][0]['id'], order['id'])
