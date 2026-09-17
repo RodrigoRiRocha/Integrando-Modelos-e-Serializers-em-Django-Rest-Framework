@@ -56,6 +56,11 @@ class CategoryViewSetTests(TestCase):
 		self.assertIsNotNone(response.data['next'])
 		self.assertIsNone(response.data['previous'])
 
+		second_page = self.client.get('/api/categories/?page=2&page_size=1')
+		self.assertEqual(len(second_page.data['results']), 1)
+		self.assertIsNotNone(second_page.data['previous'])
+		self.assertIsNotNone(second_page.data['next'])
+
 	def test_updates_and_deletes_category(self):
 		category = Category.objects.create(name='Books', description='Printed books')
 
