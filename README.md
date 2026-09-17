@@ -27,6 +27,10 @@ poetry run python manage.py runserver
 
 A API fica disponível em `http://127.0.0.1:8000/`.
 
+As listagens da API usam paginação por número de página, com até dois registros por página.
+Use `?page=2` para navegar e `?page_size=N` para solicitar outro tamanho de página.
+As respostas de listagem possuem os campos `count`, `next`, `previous` e `results`.
+
 ## Testes
 
 ```powershell
