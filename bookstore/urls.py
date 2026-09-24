@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import DefaultRouter
 
 from categories.views import CategoryViewSet
@@ -29,5 +30,6 @@ router.register('orders', OrderViewSet, basename='order')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/auth/token/', obtain_auth_token, name='api-token-auth'),
     path('api/', include(router.urls)),
 ]

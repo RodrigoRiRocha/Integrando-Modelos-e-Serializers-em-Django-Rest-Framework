@@ -1,5 +1,9 @@
+import secrets
+
+from django.contrib.auth.models import User
 from django.test import TestCase
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from categories.models import Category
@@ -59,6 +63,9 @@ class ProductSerializerTests(TestCase):
 class ProductViewSetTests(TestCase):
 	def setUp(self):
 		self.client = APIClient()
+		user = User.objects.create_user(username='api-user', password=secrets.token_urlsafe(32))
+		token = Token.objects.create(user=user)
+		self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
 		self.category = Category.objects.create(name='Programming')
 		self.product = Product.objects.create(
 			name='Django',
@@ -118,3 +125,8 @@ class ProductViewSetTests(TestCase):
 
 		self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 		self.assertFalse(Product.objects.filter(id=self.product.id).exists())
+
+	def test_rejects_unauthenticated_request(self):
+		response = APIClient().get('/api/products/')
+
+		self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

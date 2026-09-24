@@ -1,5 +1,9 @@
+import secrets
+
+from django.contrib.auth.models import User
 from django.test import TestCase
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from .models import Category
@@ -26,6 +30,9 @@ class CategorySerializerTests(TestCase):
 class CategoryViewSetTests(TestCase):
 	def setUp(self):
 		self.client = APIClient()
+		user = User.objects.create_user(username='api-user', password=secrets.token_urlsafe(32))
+		token = Token.objects.create(user=user)
+		self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
 
 	def test_creates_and_lists_categories(self):
 		response = self.client.post(
@@ -82,3 +89,8 @@ class CategoryViewSetTests(TestCase):
 
 		self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 		self.assertIn('name', response.data)
+
+	def test_rejects_unauthenticated_request(self):
+		response = APIClient().get('/api/categories/')
+
+		self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

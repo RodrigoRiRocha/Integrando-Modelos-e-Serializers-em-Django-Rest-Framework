@@ -32,6 +32,30 @@ Use `?page=2` para navegar e `?page_size=N` para solicitar outro tamanho de pág
 limitado a 100 registros por página.
 As respostas de listagem possuem os campos `count`, `next`, `previous` e `results`.
 
+## Autenticação
+
+Todos os endpoints da API exigem autenticação via **Token Authentication** do
+Django REST Framework. Crie um usuário e obtenha um token em `api/auth/token/`:
+
+```powershell
+poetry run python manage.py createsuperuser
+```
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/auth/token/ \
+  -d "username=<usuario>&password=<senha>"
+```
+
+A resposta traz `{"token": "<token>"}`. Use o token no cabeçalho `Authorization`
+em todas as demais requisições:
+
+```bash
+curl http://127.0.0.1:8000/api/categories/ \
+  -H "Authorization: Token <token>"
+```
+
+Requisições sem um token válido recebem `401 Unauthorized`.
+
 ## Testes
 
 ```powershell
