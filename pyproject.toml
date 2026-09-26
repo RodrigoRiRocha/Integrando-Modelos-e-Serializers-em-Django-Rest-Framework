@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "bookstore-api"
+version = "0.1.0"
+description = "Bookstore API built with Django REST Framework"
+authors = ["Rodrigo Ribeiro da Rocha <rodrigo@localhost>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.13"
+Django = "^6.1.1"
+djangorestframework = "^3.18.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.2"
+pytest-django = "^4.14.0"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "bookstore.settings"
+python_files = ["tests.py"]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
