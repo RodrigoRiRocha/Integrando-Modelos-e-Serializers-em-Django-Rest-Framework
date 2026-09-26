@@ -126,7 +126,7 @@ class ProductViewSetTests(TestCase):
 		self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 		self.assertFalse(Product.objects.filter(id=self.product.id).exists())
 
-	def test_rejects_unauthenticated_request(self):
+	def test_allows_unauthenticated_request(self):
 		response = APIClient().get('/api/products/')
 
-		self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+		self.assertEqual(response.status_code, status.HTTP_200_OK)

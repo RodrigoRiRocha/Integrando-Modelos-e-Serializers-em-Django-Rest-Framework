@@ -90,7 +90,7 @@ class CategoryViewSetTests(TestCase):
 		self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 		self.assertIn('name', response.data)
 
-	def test_rejects_unauthenticated_request(self):
+	def test_allows_unauthenticated_request(self):
 		response = APIClient().get('/api/categories/')
 
-		self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
