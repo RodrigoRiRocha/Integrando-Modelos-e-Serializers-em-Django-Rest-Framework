@@ -27,6 +27,19 @@ poetry run python manage.py runserver
 
 A API fica disponível em `http://127.0.0.1:8000/`.
 
+## Docker
+
+Com Docker Engine e o plugin Docker Compose instalados, inicie a API com:
+
+```bash
+docker compose up --build
+```
+
+As migrações são aplicadas ao iniciar o container. A API fica disponível em
+`http://localhost:8000/`, e o banco SQLite persiste no volume `bookstore_data`.
+Para parar os containers, use `docker compose down`. Para também apagar o banco,
+use `docker compose down --volumes`.
+
 As listagens da API usam paginação por número de página, com até dois registros por página.
 Use `?page=2` para navegar e `?page_size=N` para solicitar outro tamanho de página,
 limitado a 100 registros por página.
