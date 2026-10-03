@@ -1,0 +1,12 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_DB_PATH: /app/data/db.sqlite3
+    volumes:
+      - bookstore_data:/app/data
+
+volumes:
+  bookstore_data:
