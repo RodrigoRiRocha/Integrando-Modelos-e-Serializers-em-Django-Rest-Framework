@@ -29,16 +29,32 @@ A API fica disponível em `http://127.0.0.1:8000/`.
 
 ## Docker
 
-Com Docker Engine e o plugin Docker Compose instalados, inicie a API com:
+Com Docker Engine e o plugin Docker Compose instalados, crie um arquivo `.env`
+na raiz do projeto com `POSTGRES_PASSWORD=<senha-local-exclusiva>` (não versione
+esse arquivo). Opcionalmente, defina `POSTGRES_DB` e `POSTGRES_USER`; ambos usam
+`bookstore` por padrão. Depois, inicie a API com:
 
 ```bash
 docker compose up --build
 ```
 
-As migrações são aplicadas ao iniciar o container. A API fica disponível em
-`http://localhost:8000/`, e o banco SQLite persiste no volume `bookstore_data`.
+O serviço web aguarda o PostgreSQL ficar saudável antes de aplicar as migrações.
+A API fica disponível em `http://localhost:8000/`, e o banco PostgreSQL 17
+persiste no volume `postgres_data`. O banco não expõe sua porta no host.
 Para parar os containers, use `docker compose down`. Para também apagar o banco,
 use `docker compose down --volumes`.
+
+Fora do Docker, a aplicação continua usando SQLite por padrão. Para conectar a
+um PostgreSQL externo, defina `POSTGRES_HOST`, `POSTGRES_DB`, `POSTGRES_USER`,
+`POSTGRES_PASSWORD` e, opcionalmente, `POSTGRES_PORT` (padrão: `5432`).
+Os dados do SQLite existente não são transferidos automaticamente; o volume
+antigo `bookstore_data` e o arquivo `db.sqlite3` não são apagados pela mudança.
+
+Para executar os testes com PostgreSQL:
+
+```bash
+docker compose run --rm web poetry run python manage.py test
+```
 
 As listagens da API usam paginação por número de página, com até dois registros por página.
 Use `?page=2` para navegar e `?page_size=N` para solicitar outro tamanho de página,

@@ -9,6 +9,7 @@ package-mode = false
 python = "^3.13"
 Django = "^6.1.1"
 djangorestframework = "^3.18.1"
+psycopg = {version = "^3.2", extras = ["binary"]}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.2"
