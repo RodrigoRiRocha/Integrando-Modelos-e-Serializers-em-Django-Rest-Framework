@@ -1,10 +1,50 @@
+import os
+import runpy
 import secrets
+from pathlib import Path
+from unittest.mock import patch
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
+
+
+class DatabaseConfigurationTests(SimpleTestCase):
+	def load_database(self, environment):
+		with patch.dict(os.environ, environment, clear=True):
+			return runpy.run_path(str(Path(__file__).with_name('settings.py')))['DATABASES']['default']
+
+	def test_sqlite_fallback_preserves_custom_path(self):
+		database = self.load_database({'DJANGO_DB_PATH': 'custom.sqlite3'})
+
+		self.assertEqual(database['ENGINE'], 'django.db.backends.sqlite3')
+		self.assertEqual(database['NAME'], 'custom.sqlite3')
+
+	def test_postgresql_configuration(self):
+		environment = {
+			'POSTGRES_HOST': 'db',
+			'POSTGRES_DB': 'bookstore',
+			'POSTGRES_USER': 'bookstore',
+			'POSTGRES_PASSWORD': secrets.token_urlsafe(32),
+		}
+		database = self.load_database(environment)
+
+		self.assertEqual(database, {
+			'ENGINE': 'django.db.backends.postgresql',
+			'NAME': environment['POSTGRES_DB'],
+			'USER': environment['POSTGRES_USER'],
+			'PASSWORD': environment['POSTGRES_PASSWORD'],
+			'HOST': 'db',
+			'PORT': '5432',
+		})
+		environment['POSTGRES_PORT'] = '5433'
+		self.assertEqual(self.load_database(environment)['PORT'], '5433')
+
+	def test_postgresql_requires_complete_configuration(self):
+		with self.assertRaises(KeyError):
+			self.load_database({'POSTGRES_HOST': 'db'})
 
 
 class TokenAuthTests(TestCase):
