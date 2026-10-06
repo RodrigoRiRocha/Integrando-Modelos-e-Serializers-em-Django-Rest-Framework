@@ -29,10 +29,14 @@ A API fica disponível em `http://127.0.0.1:8000/`.
 
 ## Docker
 
-Com Docker Engine e o plugin Docker Compose instalados, crie um arquivo `.env`
-na raiz do projeto com `POSTGRES_PASSWORD=<senha-local-exclusiva>` (não versione
-esse arquivo). Opcionalmente, defina `POSTGRES_DB` e `POSTGRES_USER`; ambos usam
-`bookstore` por padrão. Depois, inicie a API com:
+Com Docker Engine e o plugin Docker Compose instalados, copie `.env.example` para
+`.env` na raiz do projeto e defina uma senha local exclusiva em
+`POSTGRES_PASSWORD` (não versione o arquivo `.env`). `POSTGRES_DB` e
+`POSTGRES_USER` já usam `bookstore` como padrão. Depois, inicie a API com:
+
+```powershell
+Copy-Item .env.example .env
+```
 
 ```bash
 docker compose up --build
