@@ -60,6 +60,87 @@ Para executar os testes com PostgreSQL:
 docker compose run --rm web poetry run python manage.py test
 ```
 
+## Docker Networking (exercicio EBAC)
+
+### Principais tipos de rede
+
+| Driver/modo | Uso principal | Observacoes |
+| --- | --- | --- |
+| `bridge` | Containers no mesmo Docker Engine | Rede isolada do host, DNS por nome de servico e portas publicadas quando necessario. |
+| `host` | Compartilhar a rede do host | Sem isolamento de rede; `ports` nao se aplica. Nativo no Linux; no Docker Desktop 4.34+ exige habilitacao e tem limitacoes. |
+| `none` | Container sem acesso a rede | Apenas loopback; inadequado para a API que depende do banco. |
+| `overlay` | Comunicacao entre hosts Docker | Requer Docker Swarm; usado em aplicacoes distribuidas. |
+| `macvlan` | Container com MAC proprio na rede fisica | Exige configuracao da rede e suporte do ambiente; nao funciona no Docker Desktop Windows/macOS. |
+| `ipvlan` | Containers com IPs proprios compartilhando o MAC da interface pai | Usado em integracoes avancadas de rede Linux; nao necessario neste projeto. |
+
+`host` e `none` sao modos de rede configurados com `network_mode` no Compose.
+Os demais sao drivers. A tabela compara as alternativas; este exercicio
+implementa **bridge**, adequada para API e PostgreSQL no mesmo host.
+
+### Rede bridge explicita no Compose
+
+O arquivo `compose.yaml` declara a rede `bookstore_network` com `driver: bridge`.
+Os servicos `web` e `db` entram explicitamente nessa rede; nao dependemos da rede
+`default` implicita do Compose. Nao e necessario executar `docker network create`:
+o proprio Compose cria e gerencia a rede ao subir os servicos.
+
+```text
+Host: localhost:8000
+  |
+  | porta publicada 8000:8000
+  v
+web:8000 ---- bookstore_network (bridge) ---- db:5432
+      DNS: db -> IP do banco
+```
+
+O Compose adiciona o nome do projeto ao recurso, por exemplo
+`bookstore_bookstore_network` quando usamos `-p bookstore`. Isso evita colisao
+com outras execucoes. O Django usa `POSTGRES_HOST=db` e a porta interna `5432`:
+o DNS da bridge resolve o nome do servico, sem IP fixo e sem usar `localhost`
+para acessar outro container. Apenas a API publica a porta `8000` no host;
+o PostgreSQL nao publica portas. A bridge permite saida de rede por padrao,
+mas nao substitui autenticacao, firewall ou criptografia.
+
+### Execucao e verificacao
+
+Prepare o `.env` conforme a secao Docker e execute os comandos abaixo sempre
+com o mesmo nome de projeto. `config --quiet` valida sem imprimir a senha.
+
+```powershell
+docker compose -p bookstore config --quiet
+docker compose -p bookstore up --build -d
+docker compose -p bookstore ps
+docker network ls --filter label=com.docker.compose.project=bookstore
+docker network inspect bookstore_bookstore_network --format '{{.Driver}}'
+docker network inspect bookstore_bookstore_network --format '{{json .Containers}}'
+```
+
+O driver deve ser `bridge`, e a lista de containers deve conter `web` e `db`.
+Confira tambem o DNS e uma consulta real ao PostgreSQL a partir da API:
+
+```powershell
+docker compose -p bookstore exec web poetry run python -c "import socket; print(socket.gethostbyname('db'))"
+docker compose -p bookstore exec web poetry run python manage.py shell -c "from django.db import connection; cursor = connection.cursor(); cursor.execute('SELECT 1'); print(cursor.fetchone()); cursor.close()"
+docker compose -p bookstore exec web poetry run python manage.py test
+curl.exe -i http://localhost:8000/api/categories/
+```
+
+Resultados esperados: um IP interno para `db`, `(1,)` na consulta SQL, testes
+aprovados e HTTP `200` com a listagem paginada na configuracao atual.
+Se permissoes de autenticacao forem exigidas, uma resposta `401` sem token
+tambem comprova que a API esta acessivel pela porta publicada.
+Se algo falhar, consulte `docker compose -p bookstore logs web db`.
+Para evidenciar a entrega, registre a saida do driver, os dois containers
+conectados, a resolucao DNS e a consulta SQL; nunca inclua o `.env` ou senhas.
+
+```powershell
+docker compose -p bookstore down
+docker network ls --filter label=com.docker.compose.project=bookstore
+```
+
+O `down` remove os containers e a rede criada pelo Compose, mas preserva o
+volume do PostgreSQL. Nao use `--volumes` se quiser manter os dados.
+
 As listagens da API usam paginação por número de página, com até dois registros por página.
 Use `?page=2` para navegar e `?page_size=N` para solicitar outro tamanho de página,
 limitado a 100 registros por página.
