@@ -19,7 +19,7 @@ class DatabaseConfigurationTests(SimpleTestCase):
 	def load_database(self, environment):
 		return self.load_settings(environment)['DATABASES']['default']
 
-	def test_heroku_secret_key_environment_variable(self):
+	def test_secret_key_environment_variable(self):
 		settings = self.load_settings({
 			'DJANGO_DEBUG': 'False',
 			'SECRET_KEY': 'production-secret-key',
@@ -54,7 +54,7 @@ class DatabaseConfigurationTests(SimpleTestCase):
 		environment['POSTGRES_PORT'] = '5433'
 		self.assertEqual(self.load_database(environment)['PORT'], '5433')
 
-	def test_heroku_database_url_configuration(self):
+	def test_database_url_configuration(self):
 		database_url = 'postgres://bookstore:secret@db.example.com:5432/bookstore'
 		database = self.load_database({'DATABASE_URL': database_url})
 

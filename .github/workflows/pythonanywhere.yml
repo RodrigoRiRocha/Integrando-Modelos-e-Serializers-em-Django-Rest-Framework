@@ -1,4 +1,4 @@
-name: CI and Heroku deployment
+name: CI - PythonAnywhere
 
 on:
   pull_request:
@@ -31,22 +31,3 @@ jobs:
         run: python manage.py check
       - name: Run tests
         run: python manage.py test
-
-  deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: test
-    runs-on: ubuntu-latest
-    env:
-      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
-    steps:
-      - name: Check out source
-        uses: actions/checkout@v4
-      - name: Install Heroku CLI
-        run: npm install --global heroku
-      - name: Select the container stack
-        run: heroku stack:set container --app "$HEROKU_APP_NAME"
-      - name: Connect Heroku Git remote
-        run: heroku git:remote --app "$HEROKU_APP_NAME"
-      - name: Deploy main to Heroku
-        run: git push heroku HEAD:main

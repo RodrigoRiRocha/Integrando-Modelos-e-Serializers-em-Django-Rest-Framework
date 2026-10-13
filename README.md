@@ -170,29 +170,62 @@ curl http://127.0.0.1:8000/api/categories/ \
 
 Requisições sem um token válido recebem `401 Unauthorized`.
 
-## Heroku e CI/CD
+## PythonAnywhere
 
-O workflow `.github/workflows/heroku.yml` executa `check` e os testes em pull
-requests direcionados a `main`. Depois de cada push ou merge em `main`, executa
-os mesmos testes e publica a imagem Docker no Heroku somente se todos passarem.
-O deploy usa `heroku.yml` e envia o commit aprovado de `main` para `main` no Git
-remote do Heroku; o workflow configura esse remote, sem push manual.
+O workflow `.github/workflows/pythonanywhere.yml` executa `check` e os testes
+em pull requests e pushes para `main`. O plano gratuito do PythonAnywhere não
+oferece SSH, então não permite sincronizar automaticamente cada commit do
+GitHub para o servidor. O deploy abaixo é manual; planos com SSH podem ser
+automatizados depois com secrets e uma chave SSH.
 
-Crie a aplicação no Heroku e configure no GitHub, em **Settings > Secrets and
-variables > Actions**, os secrets `HEROKU_API_KEY` e `HEROKU_APP_NAME`. O nome
-deve ser idêntico ao da aplicação no Heroku. Configure as variáveis de ambiente
-do app:
+### Publicação manual
 
-- `DJANGO_DEBUG=False`
-- `SECRET_KEY`: uma chave aleatória e exclusiva para produção
-- `ALLOWED_HOSTS`: o domínio da aplicação, por exemplo `minha-api.herokuapp.com`
+1. No PythonAnywhere, crie um web app para `SEU_USUARIO.pythonanywhere.com`
+  usando **Manual configuration** e Python 3.13. O plano gratuito inclui um
+  app e SQLite local; este projeto usa SQLite por padrão.
+2. Abra um Bash Console e execute:
 
-Adicione um PostgreSQL ao app para que o Heroku forneça `DATABASE_URL`; confira
-o plano e o custo antes de provisionar o add-on. O `heroku.yml` define o build
-Docker, executa migrações na fase de release e inicia o Gunicorn. Os arquivos
-estáticos são coletados durante o build e servidos pelo WhiteNoise. O primeiro
-deploy ocorre após merge em `main`; acompanhe o resultado em **Actions** no
-GitHub e em **Activity** no painel do Heroku.
+```bash
+git clone https://github.com/RodrigoRiRocha/Integrando-Modelos-e-Serializers-em-Django-Rest-Framework.git ~/bookstore
+cd ~/bookstore
+mkvirtualenv bookstore-venv --python=python3.13
+pip install -r requirements.txt
+python manage.py migrate --noinput
+python manage.py collectstatic --noinput
+```
+
+3. Na aba **Web**, configure o código e o diretório de trabalho como
+  `/home/SEU_USUARIO/bookstore` e o virtualenv como
+  `/home/SEU_USUARIO/.virtualenvs/bookstore-venv`.
+4. Edite o arquivo WSGI pelo link da aba **Web**. Antes de importar o WSGI do
+  Django, inclua:
+
+```python
+import os
+import sys
+
+project_path = '/home/SEU_USUARIO/bookstore'
+if project_path not in sys.path:
+   sys.path.insert(0, project_path)
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'bookstore.settings'
+os.environ['DJANGO_DEBUG'] = 'False'
+os.environ['SECRET_KEY'] = 'SUBSTITUA_POR_UMA_CHAVE_ALEATORIA'
+os.environ['ALLOWED_HOSTS'] = 'SEU_USUARIO.pythonanywhere.com'
+
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
+```
+
+  Substitua `SEU_USUARIO` e gere uma chave exclusiva para produção. O arquivo
+  WSGI fica fora do repositório; não coloque a chave em arquivos versionados.
+5. Na seção **Static files** da aba **Web**, mapeie `/static/` para
+  `/home/SEU_USUARIO/bookstore/staticfiles` e clique em **Reload**.
+
+Para publicar commits futuros no plano gratuito, atualize o clone pelo Bash
+Console com `cd ~/bookstore && git pull origin main`, reinstale dependências se
+necessário, execute migrações e `collectstatic`, e então recarregue o web app.
+No plano gratuito não há PostgreSQL gerenciado nem deploy automático por SSH.
 
 ## Testes
 
