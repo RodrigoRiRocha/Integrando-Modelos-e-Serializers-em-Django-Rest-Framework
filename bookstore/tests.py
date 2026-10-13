@@ -12,9 +12,21 @@ from rest_framework.test import APIClient
 
 
 class DatabaseConfigurationTests(SimpleTestCase):
-	def load_database(self, environment):
+	def load_settings(self, environment):
 		with patch.dict(os.environ, environment, clear=True):
-			return runpy.run_path(str(Path(__file__).with_name('settings.py')))['DATABASES']['default']
+			return runpy.run_path(str(Path(__file__).with_name('settings.py')))
+
+	def load_database(self, environment):
+		return self.load_settings(environment)['DATABASES']['default']
+
+	def test_heroku_secret_key_environment_variable(self):
+		settings = self.load_settings({
+			'DJANGO_DEBUG': 'False',
+			'SECRET_KEY': 'production-secret-key',
+		})
+
+		self.assertFalse(settings['DEBUG'])
+		self.assertEqual(settings['SECRET_KEY'], 'production-secret-key')
 
 	def test_sqlite_fallback_preserves_custom_path(self):
 		database = self.load_database({'DJANGO_DB_PATH': 'custom.sqlite3'})

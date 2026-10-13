@@ -14,6 +14,8 @@ RUN poetry install --only main --no-root --no-interaction --no-ansi
 
 COPY . .
 
+RUN poetry run python manage.py collectstatic --noinput
+
 RUN useradd --create-home appuser \
     && mkdir -p /app/data \
     && chown -R appuser:appuser /app

@@ -174,22 +174,25 @@ Requisições sem um token válido recebem `401 Unauthorized`.
 
 O workflow `.github/workflows/heroku.yml` executa `check` e os testes em pull
 requests direcionados a `main`. Depois de cada push ou merge em `main`, executa
-os mesmos testes e publica a aplicação no Heroku somente se todos passarem.
+os mesmos testes e publica a imagem Docker no Heroku somente se todos passarem.
+O deploy usa `heroku.yml` e envia o commit aprovado de `main` para `main` no Git
+remote do Heroku; o workflow configura esse remote, sem push manual.
 
-Crie a aplicação no Heroku com o buildpack Python e configure no GitHub, em
-**Settings > Secrets and variables > Actions**, os secrets `HEROKU_API_KEY`,
-`HEROKU_APP_NAME` e `HEROKU_EMAIL`. O nome da aplicação deve ser idêntico ao
-definido no Heroku. Configure também as variáveis de ambiente da aplicação no
-Heroku:
+Crie a aplicação no Heroku e configure no GitHub, em **Settings > Secrets and
+variables > Actions**, os secrets `HEROKU_API_KEY` e `HEROKU_APP_NAME`. O nome
+deve ser idêntico ao da aplicação no Heroku. Configure as variáveis de ambiente
+do app:
 
 - `DJANGO_DEBUG=False`
-- `DJANGO_SECRET_KEY`: uma chave aleatória e exclusiva para produção
+- `SECRET_KEY`: uma chave aleatória e exclusiva para produção
 - `ALLOWED_HOSTS`: o domínio da aplicação, por exemplo `minha-api.herokuapp.com`
 
-O `Procfile` executa as migrações na fase de release e inicia o Gunicorn. Os
-arquivos estáticos são coletados no build e servidos pelo WhiteNoise. Após o
-merge em `main`, acompanhe o resultado em **Actions** no GitHub e em **Activity**
-no painel do Heroku.
+Adicione um PostgreSQL ao app para que o Heroku forneça `DATABASE_URL`; confira
+o plano e o custo antes de provisionar o add-on. O `heroku.yml` define o build
+Docker, executa migrações na fase de release e inicia o Gunicorn. Os arquivos
+estáticos são coletados durante o build e servidos pelo WhiteNoise. O primeiro
+deploy ocorre após merge em `main`; acompanhe o resultado em **Actions** no
+GitHub e em **Activity** no painel do Heroku.
 
 ## Testes
 
