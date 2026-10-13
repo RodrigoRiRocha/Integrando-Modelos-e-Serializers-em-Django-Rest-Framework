@@ -170,6 +170,27 @@ curl http://127.0.0.1:8000/api/categories/ \
 
 Requisições sem um token válido recebem `401 Unauthorized`.
 
+## Heroku e CI/CD
+
+O workflow `.github/workflows/heroku.yml` executa `check` e os testes em pull
+requests direcionados a `main`. Depois de cada push ou merge em `main`, executa
+os mesmos testes e publica a aplicação no Heroku somente se todos passarem.
+
+Crie a aplicação no Heroku com o buildpack Python e configure no GitHub, em
+**Settings > Secrets and variables > Actions**, os secrets `HEROKU_API_KEY`,
+`HEROKU_APP_NAME` e `HEROKU_EMAIL`. O nome da aplicação deve ser idêntico ao
+definido no Heroku. Configure também as variáveis de ambiente da aplicação no
+Heroku:
+
+- `DJANGO_DEBUG=False`
+- `DJANGO_SECRET_KEY`: uma chave aleatória e exclusiva para produção
+- `ALLOWED_HOSTS`: o domínio da aplicação, por exemplo `minha-api.herokuapp.com`
+
+O `Procfile` executa as migrações na fase de release e inicia o Gunicorn. Os
+arquivos estáticos são coletados no build e servidos pelo WhiteNoise. Após o
+merge em `main`, acompanhe o resultado em **Actions** no GitHub e em **Activity**
+no painel do Heroku.
+
 ## Testes
 
 ```powershell

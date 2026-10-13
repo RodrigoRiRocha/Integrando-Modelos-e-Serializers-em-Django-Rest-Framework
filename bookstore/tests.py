@@ -42,6 +42,18 @@ class DatabaseConfigurationTests(SimpleTestCase):
 		environment['POSTGRES_PORT'] = '5433'
 		self.assertEqual(self.load_database(environment)['PORT'], '5433')
 
+	def test_heroku_database_url_configuration(self):
+		database_url = 'postgres://bookstore:secret@db.example.com:5432/bookstore'
+		database = self.load_database({'DATABASE_URL': database_url})
+
+		self.assertEqual(database['ENGINE'], 'django.db.backends.postgresql')
+		self.assertEqual(database['NAME'], 'bookstore')
+		self.assertEqual(database['USER'], 'bookstore')
+		self.assertEqual(database['PASSWORD'], 'secret')
+		self.assertEqual(database['HOST'], 'db.example.com')
+		self.assertEqual(database['PORT'], 5432)
+		self.assertEqual(database['CONN_MAX_AGE'], 600)
+
 	def test_postgresql_requires_complete_configuration(self):
 		with self.assertRaises(KeyError):
 			self.load_database({'POSTGRES_HOST': 'db'})

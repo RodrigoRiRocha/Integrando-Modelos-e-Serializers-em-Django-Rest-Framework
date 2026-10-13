@@ -10,6 +10,9 @@ python = "^3.13"
 Django = "^6.1.1"
 djangorestframework = "^3.18.1"
 psycopg = {version = "^3.2", extras = ["binary"]}
+dj-database-url = "^2.3"
+gunicorn = "^23.0"
+whitenoise = "^6.9"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.2"
